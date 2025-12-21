@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+build/
+dist/
+*/build/
+*/dist/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+
+# Django
+*.log
+db.sqlite3
+media/
+
+# Temporary files
+*.tmp
+*.temp
