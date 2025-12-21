@@ -89,7 +89,7 @@ const Home: React.FC = () => {
             <Link to="/about" className="btn">About Us</Link>
           </div>
           <div className="about-image">
-            <img src="/assets/images/photogroup.jpg" alt="SSSALU Group" />
+            <img src="/assets/images/background_images1.jpg" alt="SSSALU Group" />
           </div>
         </div>
       </section>
