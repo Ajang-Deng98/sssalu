@@ -7,6 +7,8 @@ const allImages = [
   '/assets/images/background_images1.jpg',
   '/assets/images/hero_homepage_3.jpg',
   '/assets/images/background_images2.jpg',
+  '/assets/images/background_images3.jpg',
+  '/assets/images/background_images4.jpg',
   
 ];
 

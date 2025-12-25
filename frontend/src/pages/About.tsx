@@ -6,9 +6,9 @@ const About: React.FC = () => {
     <div>
       {/* Page Banner */}
       <section style={{
-        height: '70vh',
-        minHeight: '500px',
-        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/hero_homepage_1.jpg")',
+        height: '80.5vh',
+        minHeight: '575px',
+        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/background_imageabout.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

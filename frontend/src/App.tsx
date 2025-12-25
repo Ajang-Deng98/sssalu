@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header.tsx';
 import Footer from './components/Footer.tsx';
+import ScrollToTop from './components/ScrollToTop.tsx';
 import Home from './pages/Home.tsx';
 import About from './pages/About.tsx';
 import Events from './pages/Events.tsx';
@@ -29,6 +30,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
         </Routes>
         <Footer />
+        <ScrollToTop />
       </div>
     </Router>
   );

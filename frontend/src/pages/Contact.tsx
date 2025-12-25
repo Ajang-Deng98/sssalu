@@ -28,9 +28,9 @@ const Contact: React.FC = () => {
     <div>
       {/* Page Banner */}
       <section style={{
-        height: '40vh',
-        minHeight: '300px',
-        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/hero_homepage_1.jpg")',
+        height: '60vh',
+        minHeight: '500px',
+        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/contact_backgrounddone.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
@@ -65,8 +65,7 @@ const Contact: React.FC = () => {
                 <i className="fas fa-envelope"></i>
               </div>
               <h3>Email Us</h3>
-              <p><a href="mailto:sssalu@alu.edu">sssalu@alu.edu</a></p>
-              <p><a href="mailto:sssalu.president@alu.edu">sssalu.president@alu.edu</a></p>
+              <p><a href="mailto:sssalu@alu.edu">choldaniel700@gmail.com</a></p>
             </div>
 
             <div className="contact-info-card">
@@ -74,8 +73,7 @@ const Contact: React.FC = () => {
                 <i className="fas fa-phone"></i>
               </div>
               <h3>Call Us</h3>
-              <p><a href="tel:+250123456789">+250 123 456 789</a></p>
-              <p><a href="tel:+250987654321">+250 987 654 321</a></p>
+              <p><a href="tel:+250798619966">+250 798 619 966</a></p>
             </div>
 
             <div className="contact-info-card">
@@ -173,12 +171,13 @@ const Contact: React.FC = () => {
               <h2 className="section-title">Find Us</h2>
               <div className="map">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.5063966804!2d30.119441!3d-1.9436599999999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca5e2c966cc71%3A0xf3bc79bba81a7776!2sAfrican%20Leadership%20University%2C%20Kigali%2C%20Rwanda!5e0!3m2!1sen!2srw!4v1623456789012!5m2!1sen!2srw" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.5535042082997!2d30.150342673651657!3d-1.9306257366670636!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca77688d3131f%3A0x3a65f6d29a33c0d3!2sAfrican%20Leadership%20University%20(ALU)!5e0!3m2!1sen!2srw!4v1766571438446!5m2!1sen!2srw" 
                   width="100%" 
                   height="450" 
                   style={{ border: 0 }} 
                   allowFullScreen 
                   loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
                   title="ALU Location"
                 />
               </div>
@@ -200,7 +199,7 @@ const Contact: React.FC = () => {
                 <span className="faq-toggle"><i className="fas fa-plus"></i></span>
               </div>
               <div className="faq-answer">
-                <p>To join SSSALU, visit our Membership page and fill out the application form. You can also contact us directly via email or visit our office during office hours for more information.</p>
+                <p>All South Sudanese students at ALU are members by default. If you would like to be more actively involved, you can visit our Membership page and fill out the application form. You can also contact us directly via email.</p>
               </div>
             </div>
 

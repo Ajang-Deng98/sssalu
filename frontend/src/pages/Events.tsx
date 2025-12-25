@@ -49,19 +49,46 @@ const Events: React.FC = () => {
     <div>
       {/* Page Banner */}
       <section style={{
-        height: '40vh',
-        minHeight: '300px',
-        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/hero_homepage_2.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        height: '85vh',
+        minHeight: '600px',
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
         color: 'var(--white)',
-        paddingTop: '80px'
+        paddingTop: '80px',
+        overflow: 'hidden'
       }}>
-        <div style={{ maxWidth: '800px', padding: '0 20px' }}>
+        <video 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          preload="auto"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: -2,
+            filter: 'brightness(1.1) contrast(1.2) saturate(1.1)'
+          }}
+        >
+          <source src="/assets/videos/event_video.mp4" type="video/mp4" />
+        </video>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6))',
+          zIndex: -1
+        }} />
+        <div style={{ maxWidth: '800px', padding: '0 20px', position: 'relative', zIndex: 1 }}>
           <h1 style={{ fontSize: '3rem', marginBottom: '15px', fontWeight: '700' }}>Events</h1>
           <p style={{ fontSize: '1.2rem' }}>Join us for cultural celebrations, academic workshops, and community gatherings</p>
         </div>

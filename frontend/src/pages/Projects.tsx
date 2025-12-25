@@ -4,9 +4,9 @@ const Projects: React.FC = () => {
   return (
     <div>
       <section style={{
-        height: '40vh',
-        minHeight: '300px',
-        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/hero_homepage_1.jpg")',
+        height: '70vh',
+        minHeight: '600px',
+        background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/background_projectdone.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
