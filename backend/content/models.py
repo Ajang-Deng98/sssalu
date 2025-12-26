@@ -183,3 +183,42 @@ class SiteSettings(models.Model):
         if not self.pk and SiteSettings.objects.exists():
             raise ValueError('Only one SiteSettings instance is allowed')
         return super().save(*args, **kwargs)
+
+class MentorApplication(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    graduation_year = models.IntegerField()
+    program = models.CharField(max_length=100)
+    current_position = models.CharField(max_length=200)
+    company = models.CharField(max_length=200)
+    experience_years = models.IntegerField()
+    expertise_areas = models.TextField(help_text='Areas of expertise (e.g., Software Development, Business Strategy)')
+    mentoring_experience = models.TextField(help_text='Previous mentoring experience')
+    availability = models.CharField(max_length=100, help_text='e.g., Weekends, Evenings')
+    motivation = models.TextField(help_text='Why do you want to become a mentor?')
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - Mentor Application"
+
+class MentorRequest(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    student_id = models.CharField(max_length=50)
+    program = models.CharField(max_length=100)
+    year_of_study = models.CharField(max_length=20)
+    career_interests = models.TextField(help_text='Areas of career interest')
+    mentoring_goals = models.TextField(help_text='What do you hope to achieve through mentoring?')
+    preferred_mentor_background = models.TextField(help_text='Preferred mentor background or expertise')
+    availability = models.CharField(max_length=100, help_text='e.g., Weekends, Evenings')
+    additional_info = models.TextField(blank=True, help_text='Any additional information')
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('matched', 'Matched'), ('completed', 'Completed')], default='pending')
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - Mentor Request"

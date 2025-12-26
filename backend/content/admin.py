@@ -1,25 +1,8 @@
 from django.contrib import admin
-from .models import Event, Project, News, Membership, Gallery, Alumni, Contact, Newsletter, SiteSettings, EventRSVP
-
-# Unregister Contact if already registered
-try:
-    admin.site.unregister(Contact)
-except admin.sites.NotRegistered:
-    pass
-
-# Register Contact with fresh configuration
-class ContactAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'email', 'subject', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('name', 'email', 'subject')
-    ordering = ('-id',)
-    list_per_page = 50
-    
-    def changelist_view(self, request, extra_context=None):
-        # Force refresh of queryset
-        return super().changelist_view(request, extra_context)
-
-admin.site.register(Contact, ContactAdmin)
+from .models import (
+    Event, Project, News, Membership, Gallery, Alumni, Newsletter, 
+    SiteSettings, EventRSVP, MentorApplication, MentorRequest, Contact
+)
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
@@ -96,3 +79,37 @@ class EventRSVPAdmin(admin.ModelAdmin):
     list_filter = ['event', 'created_at']
     search_fields = ['first_name', 'last_name', 'email', 'alu_id']
     readonly_fields = ['created_at']
+
+admin.site.register(Contact)
+
+@admin.register(MentorApplication)
+class MentorApplicationAdmin(admin.ModelAdmin):
+    list_display = ['first_name', 'last_name', 'email', 'graduation_year', 'current_position', 'status', 'created_at']
+    list_filter = ['status', 'graduation_year', 'program', 'created_at']
+    search_fields = ['first_name', 'last_name', 'email', 'current_position', 'company']
+    readonly_fields = ['created_at']
+    actions = ['approve_applications', 'reject_applications']
+    
+    def approve_applications(self, request, queryset):
+        queryset.update(status='approved')
+    approve_applications.short_description = "Approve selected applications"
+    
+    def reject_applications(self, request, queryset):
+        queryset.update(status='rejected')
+    reject_applications.short_description = "Reject selected applications"
+
+@admin.register(MentorRequest)
+class MentorRequestAdmin(admin.ModelAdmin):
+    list_display = ['first_name', 'last_name', 'email', 'student_id', 'program', 'year_of_study', 'status', 'created_at']
+    list_filter = ['status', 'program', 'year_of_study', 'created_at']
+    search_fields = ['first_name', 'last_name', 'email', 'student_id']
+    readonly_fields = ['created_at']
+    actions = ['mark_as_matched', 'mark_as_completed']
+    
+    def mark_as_matched(self, request, queryset):
+        queryset.update(status='matched')
+    mark_as_matched.short_description = "Mark as matched with mentor"
+    
+    def mark_as_completed(self, request, queryset):
+        queryset.update(status='completed')
+    mark_as_completed.short_description = "Mark mentoring as completed"

@@ -8,6 +8,7 @@ import About from './pages/About.tsx';
 import Events from './pages/Events.tsx';
 import Projects from './pages/Projects.tsx';
 import News from './pages/News.tsx';
+import NewsDetail from './pages/NewsDetail.tsx';
 import Membership from './pages/Membership.tsx';
 import Gallery from './pages/Gallery.tsx';
 import Alumni from './pages/Alumni.tsx';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/events" element={<Events />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/news" element={<News />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/alumni" element={<Alumni />} />

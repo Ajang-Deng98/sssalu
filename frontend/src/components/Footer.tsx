@@ -29,8 +29,8 @@ const Footer: React.FC = () => {
           <div className="footer-section">
             <h3>Contact Us</h3>
             <p><i className="fas fa-map-marker-alt"></i> African Leadership University, Kigali, Rwanda</p>
-            <p><i className="fas fa-envelope"></i> sssalu@alu.edu</p>
-            <p><i className="fas fa-phone"></i> +250 123 456 789</p>
+            <p><i className="fas fa-envelope"></i> choldaniel700@gmail.com</p>
+            <p><i className="fas fa-phone"></i> +250 798 619 966</p>
           </div>
         </div>
         <div className="footer-bottom">

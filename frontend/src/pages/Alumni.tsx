@@ -1,14 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+interface AlumniMember {
+  id: number;
+  first_name: string;
+  last_name: string;
+  graduation_year: number;
+  program: string;
+  current_position: string;
+  company: string;
+  email: string;
+  linkedin: string;
+  photo: string;
+  bio: string;
+  achievements: string;
+  created_at: string;
+}
 
 const Alumni: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [alumni, setAlumni] = useState<AlumniMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showMentorForm, setShowMentorForm] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [mentorMessage, setMentorMessage] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
+  
+  useEffect(() => {
+    fetchAlumni();
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchAlumni = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/alumni/');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setAlumni(data);
+      }
+    } catch (error) {
+      console.error('Error fetching alumni:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const displayAlumni = alumni.length > 0 ? alumni : [];
+  
+  const [mentorFormData, setMentorFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    graduation_year: '',
+    program: '',
+    current_position: '',
+    company: '',
+    experience_years: '',
+    expertise_areas: '',
+    mentoring_experience: '',
+    availability: '',
+    motivation: ''
+  });
+
+  const [requestFormData, setRequestFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    student_id: '',
+    program: '',
+    year_of_study: '',
+    career_interests: '',
+    mentoring_goals: '',
+    preferred_mentor_background: '',
+    availability: '',
+    additional_info: ''
+  });
+
+  const [connectMessage, setConnectMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Email submitted:', email);
-    setEmail('');
+    try {
+      const response = await fetch('http://localhost:8000/api/newsletter/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const result = await response.json();
+      setConnectMessage(result.message);
+      
+      if (result.status === 'success' || result.status === 'info') {
+        setEmail('');
+      }
+    } catch (error) {
+      setConnectMessage('Error: Failed to join network. Please try again.');
+    }
+    setTimeout(() => setConnectMessage(''), 5000);
+  };
+
+  const handleMentorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8000/api/mentor-application/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mentorFormData),
+      });
+      const result = await response.json();
+      setMentorMessage(result.message);
+      if (result.status === 'success') {
+        setMentorFormData({
+          first_name: '', last_name: '', email: '', phone: '', graduation_year: '',
+          program: '', current_position: '', company: '', experience_years: '',
+          expertise_areas: '', mentoring_experience: '', availability: '', motivation: ''
+        });
+      }
+    } catch (error) {
+      setMentorMessage('Error: Failed to submit application.');
+    }
+    setTimeout(() => setMentorMessage(''), 5000);
+  };
+
+  const handleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8000/api/mentor-request/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestFormData),
+      });
+      const result = await response.json();
+      setRequestMessage(result.message);
+      if (result.status === 'success') {
+        setRequestFormData({
+          first_name: '', last_name: '', email: '', phone: '', student_id: '',
+          program: '', year_of_study: '', career_interests: '', mentoring_goals: '',
+          preferred_mentor_background: '', availability: '', additional_info: ''
+        });
+      }
+    } catch (error) {
+      setRequestMessage('Error: Failed to submit request.');
+    }
+    setTimeout(() => setRequestMessage(''), 5000);
+  };
+
+  const handleMentorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setMentorFormData({ ...mentorFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleRequestChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setRequestFormData({ ...requestFormData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -75,41 +220,41 @@ const Alumni: React.FC = () => {
           <p className="section-description">Meet our outstanding alumni and learn about their journeys after ALU</p>
 
           <div className="alumni-grid">
-            <div className="alumni-card">
-              <div className="alumni-image">
-                <img src="/assets/images/aruei_alumni.jpg" alt="Abraham Aruei Thel Deng" />
-              </div>
-              <div className="alumni-content">
-                <h3>Abraham Aruei Thel Deng</h3>
-                <p className="alumni-title">Founder & Executive Director, Silicon High School</p>
-                <p className="alumni-graduation">Class of 2024 | Software Engineering</p>
-                <p className="alumni-description">Abraham Aruei Thel Deng is a purpose driven leader and technologist committed to expanding access to quality education and digital skills. As the Founder and Executive Director of Silicon High School, he works to empower young people through innovation, technology, and leadership, preparing the next generation to solve real world challenges.</p>
-                <div className="alumni-quote">
-                  <p>“My journey at ALU and through SSSALU shaped my leadership values and sense of responsibility. The ALU community taught me to lead with purpose, give back intentionally, and remain grounded in where I come from.”</p>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '50px' }}>Loading alumni...</div>
+            ) : displayAlumni.length > 0 ? (
+              displayAlumni.map((member, index) => (
+                <div key={member.id} className="alumni-card">
+                  <div className="alumni-image">
+                    <img 
+                      src={member.photo ? 
+                        `http://localhost:8000${member.photo}` : 
+                        '/assets/images/default-avatar.jpg'
+                      } 
+                      alt={`${member.first_name} ${member.last_name}`} 
+                    />
+                  </div>
+                  <div className="alumni-content">
+                    <h3>{member.first_name} {member.last_name}</h3>
+                    <p className="alumni-title">{member.current_position} at {member.company}</p>
+                    <p className="alumni-graduation">Class of {member.graduation_year} | {member.program}</p>
+                    <p className="alumni-description">{member.bio}</p>
+                    {member.linkedin && (
+                      <div className="alumni-social">
+                        <a href={member.linkedin} target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-linkedin-in"></i>
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="alumni-social">
-                  <a href="https://www.linkedin.com/in/abraham-aruai-thel-deng/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_recent_activity_content_view%3B%2Fmc7C%2F0YQLq5NKcmemviFg%3D%3D" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin-in"></i></a>
-                </div>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '50px' }}>
+                <p>No alumni profiles available. Add alumni through the admin panel.</p>
               </div>
-            </div>
-
-            <div className="alumni-card">
-              <div className="alumni-image">
-                <img src="/assets/images/Longmakeralumni.jpg" alt="Long Maker Long Deng" />
-              </div>
-              <div className="alumni-content">
-                <h3>Long Maker Long Deng</h3>
-                <p className="alumni-title">Software Engineer at Google at MTN South Sudan</p>
-                <p className="alumni-graduation">Class of 2025 | Software Engineering</p>
-                <p className="alumni-description">Long Maker Long Deng is a software professional working with MTN South Sudan, contributing to the development and delivery of technology solutions that support digital connectivity and innovation in the country. Through his work, he is actively involved in advancing practical tech solutions tailored to local and regional needs.</p>
-                <div className="alumni-quote">
-                  <p>“The strong foundation I built at ALU and through SSSALU has been instrumental in shaping my career in technology. The skills, values, and network continue to guide my professional growth and create opportunities for collaboration and impact.”</p>
-                </div>
-                <div className="alumni-social">
-                  <a href="https://www.linkedin.com/in/long-maker-long-deng/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_recent_activity_content_view%3BqKiT9EC8TImDUv1Q3k4R5Q%3D%3D" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin-in"></i></a>
-                </div>
-              </div>
-            </div>
+            )}
+            
 
           </div>
         </div>
@@ -122,11 +267,7 @@ const Alumni: React.FC = () => {
           <p className="section-description">Our alumni are making an impact across the globe in various sectors and industries</p>
 
           <div className="alumni-map">
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <img src="/assets/images/graduand1.jpg" alt="Graduate 1" style={{ width: '300px', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-              <img src="/assets/images/graduand2.jpg" alt="Graduate 2" style={{ width: '300px', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-              <img src="/assets/images/graduand3.jpg" alt="Graduate 3" style={{ width: '300px', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
-            </div>
+            {/* Images removed */}
           </div>
 
           <div className="alumni-stats">
@@ -176,11 +317,110 @@ const Alumni: React.FC = () => {
             </div>
           </div>
           <div className="mentorship-cta" style={{ textAlign: 'center', marginTop: '30px' }}>
-            <a href="#" className="btn">Become a Mentor</a>
-            <a href="#" className="btn btn-outline">Request a Mentor</a>
+            <button onClick={() => setShowMentorForm(true)} className="btn">Become a Mentor</button>
+            <button onClick={() => setShowRequestForm(true)} className="btn btn-outline">Request a Mentor</button>
           </div>
         </div>
       </section>
+
+      {/* Mentor Application Form Modal */}
+      {showMentorForm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '10px', padding: '30px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>Become a Mentor</h2>
+              <button onClick={() => setShowMentorForm(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+            </div>
+            
+            {mentorMessage && (
+              <div style={{ color: mentorMessage.includes('Error') ? 'red' : 'green', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px', padding: '10px', background: mentorMessage.includes('Error') ? '#f8d7da' : '#d4edda', borderRadius: '5px' }}>
+                {mentorMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleMentorSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="text" name="first_name" placeholder="First Name" value={mentorFormData.first_name} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <input type="text" name="last_name" placeholder="Last Name" value={mentorFormData.last_name} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="email" name="email" placeholder="Email" value={mentorFormData.email} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <input type="tel" name="phone" placeholder="Phone" value={mentorFormData.phone} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="number" name="graduation_year" placeholder="Graduation Year" value={mentorFormData.graduation_year} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <select name="program" value={mentorFormData.program} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}>
+                  <option value="">Select Program</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Entrepreneurial Leadership">Entrepreneurial Leadership</option>
+                  <option value="International Business & Trade">International Business & Trade</option>
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="text" name="current_position" placeholder="Current Position" value={mentorFormData.current_position} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <input type="text" name="company" placeholder="Company" value={mentorFormData.company} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+              </div>
+              <input type="number" name="experience_years" placeholder="Years of Experience" value={mentorFormData.experience_years} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px' }} />
+              <textarea name="expertise_areas" placeholder="Areas of Expertise" value={mentorFormData.expertise_areas} onChange={handleMentorChange} required rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px', resize: 'vertical' }} />
+              <textarea name="mentoring_experience" placeholder="Previous Mentoring Experience" value={mentorFormData.mentoring_experience} onChange={handleMentorChange} required rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px', resize: 'vertical' }} />
+              <input type="text" name="availability" placeholder="Availability (e.g., Weekends, Evenings)" value={mentorFormData.availability} onChange={handleMentorChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px' }} />
+              <textarea name="motivation" placeholder="Why do you want to become a mentor?" value={mentorFormData.motivation} onChange={handleMentorChange} required rows={4} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '20px', resize: 'vertical' }} />
+              <button type="submit" className="btn" style={{ width: '100%' }}>Submit Application</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mentor Request Form Modal */}
+      {showRequestForm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '10px', padding: '30px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>Request a Mentor</h2>
+              <button onClick={() => setShowRequestForm(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+            </div>
+            
+            {requestMessage && (
+              <div style={{ color: requestMessage.includes('Error') ? 'red' : 'green', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px', padding: '10px', background: requestMessage.includes('Error') ? '#f8d7da' : '#d4edda', borderRadius: '5px' }}>
+                {requestMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleRequestSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="text" name="first_name" placeholder="First Name" value={requestFormData.first_name} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <input type="text" name="last_name" placeholder="Last Name" value={requestFormData.last_name} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="email" name="email" placeholder="Email" value={requestFormData.email} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <input type="tel" name="phone" placeholder="Phone" value={requestFormData.phone} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <input type="text" name="student_id" placeholder="Student ID" value={requestFormData.student_id} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
+                <select name="program" value={requestFormData.program} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}>
+                  <option value="">Select Program</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Entrepreneurial Leadership">Entrepreneurial Leadership</option>
+                  <option value="International Business & Trade">International Business & Trade</option>
+                </select>
+              </div>
+              <select name="year_of_study" value={requestFormData.year_of_study} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px' }}>
+                <option value="">Select Year of Study</option>
+                <option value="Year 1">Year 1</option>
+                <option value="Year 2">Year 2</option>
+                <option value="Year 3">Year 3</option>
+                <option value="Year 4">Year 4</option>
+              </select>
+              <textarea name="career_interests" placeholder="Career Interests" value={requestFormData.career_interests} onChange={handleRequestChange} required rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px', resize: 'vertical' }} />
+              <textarea name="mentoring_goals" placeholder="What do you hope to achieve through mentoring?" value={requestFormData.mentoring_goals} onChange={handleRequestChange} required rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px', resize: 'vertical' }} />
+              <textarea name="preferred_mentor_background" placeholder="Preferred Mentor Background" value={requestFormData.preferred_mentor_background} onChange={handleRequestChange} required rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px', resize: 'vertical' }} />
+              <input type="text" name="availability" placeholder="Availability (e.g., Weekends, Evenings)" value={requestFormData.availability} onChange={handleRequestChange} required style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '15px' }} />
+              <textarea name="additional_info" placeholder="Additional Information (Optional)" value={requestFormData.additional_info} onChange={handleRequestChange} rows={3} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '5px', width: '100%', marginBottom: '20px', resize: 'vertical' }} />
+              <button type="submit" className="btn" style={{ width: '100%' }}>Submit Request</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Support & Donate */}
       <section className="support-section">
@@ -221,6 +461,20 @@ const Alumni: React.FC = () => {
           <p>Join our alumni network to stay updated with the latest news, events, and opportunities</p>
 
           <form className="alumni-form" onSubmit={handleSubmit}>
+            {connectMessage && (
+              <div style={{ 
+                color: connectMessage.includes('Error') ? 'red' : 'green', 
+                fontWeight: 'bold', 
+                textAlign: 'center', 
+                marginBottom: '15px',
+                padding: '10px',
+                background: connectMessage.includes('Error') ? '#f8d7da' : '#d4edda',
+                border: `1px solid ${connectMessage.includes('Error') ? '#f5c6cb' : '#c3e6cb'}`,
+                borderRadius: '5px'
+              }}>
+                {connectMessage}
+              </div>
+            )}
             <input 
               type="email" 
               placeholder="Enter your email address" 

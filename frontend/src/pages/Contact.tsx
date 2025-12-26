@@ -9,11 +9,28 @@ const Contact: React.FC = () => {
   });
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setSuccessMessage('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    try {
+      const response = await fetch('http://localhost:8000/api/contact/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        setSuccessMessage(result.message);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setSuccessMessage('Error: ' + result.message);
+      }
+    } catch (error) {
+      setSuccessMessage('Error: Failed to send message. Please try again.');
+    }
     setTimeout(() => setSuccessMessage(''), 5000);
   };
 
@@ -28,8 +45,8 @@ const Contact: React.FC = () => {
     <div>
       {/* Page Banner */}
       <section style={{
-        height: '60vh',
-        minHeight: '500px',
+        height: '70vh',
+        minHeight: '700px',
         background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/contact_backgrounddone.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',

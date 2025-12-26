@@ -1,23 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
+interface NewsItem {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  author_name: string;
+  excerpt: string;
+  image: string;
+  is_featured: boolean;
+  created_at: string;
+}
 
 const NewsPage: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [featuredNews, setFeaturedNews] = useState<NewsItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Subscribed:', email);
-    setEmail('');
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const fetchNews = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/news/');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        const featured = data.find(item => item.is_featured);
+        setFeaturedNews(featured || null);
+        setNewsItems(data.filter(item => !item.is_featured));
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const featuredPost = { title: 'New Leadership Elected', content: 'We are excited to announce our new leadership team for the 2024 academic year.', created_at: '2024-01-15' };
-  const recentNews = [];
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8000/api/newsletter/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const result = await response.json();
+      setMessage(result.message);
+      
+      if (result.status === 'success' || result.status === 'info') {
+        setEmail('');
+      }
+    } catch (error) {
+      setMessage('Error: Failed to subscribe. Please try again.');
+    }
+    setTimeout(() => setMessage(''), 5000);
+  };
+
+  const displayFeatured = featuredNews;
+  const displayNews = newsItems;
 
   return (
     <div>
       {/* Page Banner */}
       <section style={{
-        height: '40vh',
-        minHeight: '300px',
+        height: '60vh',
+        minHeight: '600px',
         background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/assets/images/hero_homepage_2.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -35,22 +89,27 @@ const NewsPage: React.FC = () => {
       </section>
 
       {/* Featured Post */}
-      {featuredPost && (
+      {displayFeatured && (
         <section className="featured-post">
           <div className="container">
             <div className="featured-post-card">
-              <div className="featured-post-image">
-                <img src="/assets/images/featured-post.jpg" alt={featuredPost.title} />
-                <div className="post-category">Featured</div>
-              </div>
+              {featuredNews?.image && (
+                <div className="featured-post-image">
+                  <img 
+                    src={`http://localhost:8000${featuredNews.image}`} 
+                    alt={displayFeatured.title} 
+                  />
+                  <div className="post-category">Featured</div>
+                </div>
+              )}
               <div className="featured-post-content">
                 <div className="post-meta">
-                  <p><i className="fas fa-calendar-alt"></i> {new Date(featuredPost.created_at).toLocaleDateString()}</p>
-                  <p><i className="fas fa-user"></i> SSSALU Team</p>
+                  <p><i className="fas fa-calendar-alt"></i> {new Date(displayFeatured.created_at).toLocaleDateString()}</p>
+                  <p><i className="fas fa-user"></i> {featuredNews?.author_name || 'SSSALU Team'}</p>
                 </div>
-                <h2>{featuredPost.title}</h2>
-                <p>{featuredPost.content.substring(0, 200)}...</p>
-                <a href="#" className="btn">Read Full Article</a>
+                <h2>{displayFeatured.title}</h2>
+                <p>{displayFeatured.content.substring(0, 200)}...</p>
+                <Link to={`/news/${displayFeatured.id}`} className="btn">Read Full Article</Link>
               </div>
             </div>
           </div>
@@ -64,100 +123,42 @@ const NewsPage: React.FC = () => {
           <p className="section-description">Latest updates and announcements from the South Sudanese Student Association</p>
 
           <div className="blog-grid">
-            {recentNews.length > 0 ? (
-              recentNews.map((article, index) => (
-                <div key={index} className="blog-card">
-                  <div className="blog-image">
-                    <img src={`/assets/images/news${(index % 2) + 1}.jpg`} alt={article.title} />
-                    <div className="post-category">News</div>
-                  </div>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '50px' }}>Loading news...</div>
+            ) : displayNews.length > 0 ? (
+              displayNews.map((article, index) => (
+                <div key={article.id} className="blog-card">
+                  {article.image && (
+                    <div className="blog-image">
+                      <img 
+                        src={`http://localhost:8000${article.image}`} 
+                        alt={article.title} 
+                      />
+                      <div className="post-category">{article.category}</div>
+                    </div>
+                  )}
                   <div className="blog-content">
                     <div className="post-meta">
                       <p><i className="fas fa-calendar-alt"></i> {new Date(article.created_at).toLocaleDateString()}</p>
                     </div>
                     <h3>{article.title}</h3>
                     <p>{article.content.substring(0, 120)}...</p>
-                    <a href="#" className="read-more">
+                    <Link to={`/news/${article.id}`} className="read-more">
                       Read More <i className="fas fa-arrow-right"></i>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))
             ) : (
-              [1, 2, 3, 4, 5, 6].map((item) => (
-                <div key={item} className="blog-card">
-                  <div className="blog-image">
-                    <img src={`/assets/images/news${(item % 2) === 0 ? '1' : '11'}.jpg`} alt={`News ${item}`} />
-                    <div className="post-category">News</div>
-                  </div>
-                  <div className="blog-content">
-                    <div className="post-meta">
-                      <p><i className="fas fa-calendar-alt"></i> {new Date().toLocaleDateString()}</p>
-                    </div>
-                    <h3>Sample News Article {item}</h3>
-                    <p>This is a sample news article showcasing the layout and design of our news section. Stay tuned for real updates!</p>
-                    <a href="#" className="read-more">
-                      Read More <i className="fas fa-arrow-right"></i>
-                    </a>
-                  </div>
-                </div>
-              ))
+              <div style={{ textAlign: 'center', padding: '50px' }}>
+                <p>No news articles available. Add news through the admin panel.</p>
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* Blog Posts */}
-      <section className="blog-section blog-posts">
-        <div className="container">
-          <h2 className="section-title">Blog Posts</h2>
-          <p className="section-description">Insights, stories, and perspectives from our community members</p>
 
-          <div className="blog-grid">
-            {[
-              {
-                title: "My Journey at ALU: A South Sudanese Perspective",
-                content: "Reflecting on the transformative experience of studying at African Leadership University and the role of community in personal growth.",
-                author: "John Deng",
-                date: "Dec 15, 2023",
-                category: "Student Life"
-              },
-              {
-                title: "Building Bridges: The Importance of Cultural Exchange",
-                content: "How cultural events and exchanges help build understanding and unity among diverse student populations at ALU.",
-                author: "Mary Ayen",
-                date: "Dec 10, 2023",
-                category: "Culture"
-              },
-              {
-                title: "Leadership Lessons from South Sudan",
-                content: "Traditional leadership principles from South Sudan that can inform modern leadership practices in academic and professional settings.",
-                author: "Peter Garang",
-                date: "Dec 5, 2023",
-                category: "Leadership"
-              }
-            ].map((post, index) => (
-              <div key={index} className="blog-card">
-                <div className="blog-image">
-                  <img src={`/assets/images/news${(index % 2) === 0 ? '1' : '11'}.jpg`} alt={post.title} />
-                  <div className="post-category">{post.category}</div>
-                </div>
-                <div className="blog-content">
-                  <div className="post-meta">
-                    <p><i className="fas fa-calendar-alt"></i> {post.date}</p>
-                    <p><i className="fas fa-user"></i> {post.author}</p>
-                  </div>
-                  <h3>{post.title}</h3>
-                  <p>{post.content}</p>
-                  <a href="#" className="read-more">
-                    Read More <i className="fas fa-arrow-right"></i>
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Newsletter Subscription */}
       <section className="subscribe-section">
@@ -167,6 +168,20 @@ const NewsPage: React.FC = () => {
             <p>Subscribe to our newsletter to receive the latest news, event updates, and stories from the SSSALU community directly in your inbox.</p>
             
             <form className="subscribe-form" onSubmit={handleSubscribe}>
+              {message && (
+                <div style={{ 
+                  color: message.includes('Error') ? 'red' : 'green', 
+                  fontWeight: 'bold', 
+                  textAlign: 'center', 
+                  marginBottom: '15px',
+                  padding: '10px',
+                  background: message.includes('Error') ? '#f8d7da' : '#d4edda',
+                  border: `1px solid ${message.includes('Error') ? '#f5c6cb' : '#c3e6cb'}`,
+                  borderRadius: '5px'
+                }}>
+                  {message}
+                </div>
+              )}
               <input 
                 type="email" 
                 placeholder="Enter your email address" 

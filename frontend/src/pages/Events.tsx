@@ -1,7 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  status: string;
+  image: string;
+  created_at: string;
+}
 
 const Events: React.FC = () => {
   const [filter, setFilter] = useState('all');
+  const [message, setMessage] = useState('');
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     event_id: '',
     first_name: '',
@@ -14,21 +28,61 @@ const Events: React.FC = () => {
     comments: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/events/');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setEvents(data);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const upcomingEvents = events.filter(event => event.status === 'upcoming');
+  const pastEvents = events.filter(event => event.status === 'past');
+
+  const displayUpcoming = upcomingEvents;
+  const displayPast = pastEvents;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('RSVP submitted:', formData);
-    // Reset form
-    setFormData({
-      event_id: '',
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      alu_id: '',
-      dietary_restrictions: '',
-      additional_guests: 0,
-      comments: ''
-    });
+    try {
+      const response = await fetch('http://localhost:8000/api/event-rsvp/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      
+      const result = await response.json();
+      setMessage(result.message);
+      
+      if (result.status === 'success') {
+        setFormData({
+          event_id: '',
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone: '',
+          alu_id: '',
+          dietary_restrictions: '',
+          additional_guests: 0,
+          comments: ''
+        });
+      }
+    } catch (error) {
+      setMessage('Error: Failed to submit RSVP. Please try again.');
+    }
+    setTimeout(() => setMessage(''), 5000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -37,13 +91,6 @@ const Events: React.FC = () => {
       [e.target.name]: e.target.value
     });
   };
-
-  const upcomingEvents = [
-    { id: 1, title: 'Cultural Night 2024', date: '2024-03-15', location: 'ALU Main Hall', description: 'Join us for an evening celebrating South Sudanese culture with traditional music, dance, and food.' }
-  ];
-  const pastEvents = [
-    { id: 2, title: 'Leadership Workshop', date: '2023-12-10', location: 'Conference Room A', description: 'A professional development workshop focused on building leadership skills.' }
-  ];
 
   return (
     <div>
@@ -127,34 +174,37 @@ const Events: React.FC = () => {
             <h2 className="section-title">Upcoming Events</h2>
 
             <div className="events-grid">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map((event, index) => (
-                  <div key={index} className="event-card upcoming">
-                    <div className="event-content">
-                      <div className="event-date">
-                        <div className="date-box">
-                          <span className="month">{new Date(event.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</span>
-                          <span className="day">{new Date(event.date).getDate()}</span>
-                          <span className="year">{new Date(event.date).getFullYear()}</span>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '50px' }}>Loading events...</div>
+              ) : (
+                displayUpcoming.length > 0 ? (
+                  displayUpcoming.map((event, index) => (
+                    <div key={upcomingEvents.length > 0 ? event.id : index} className="event-card upcoming">
+                      <div className="event-content">
+                        <div className="event-date">
+                          <div className="date-box">
+                            <span className="month">{new Date(event.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</span>
+                            <span className="day">{new Date(event.date).getDate()}</span>
+                            <span className="year">{new Date(event.date).getFullYear()}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="event-details">
-                        <h3>{event.title}</h3>
-                        <div className="event-meta">
-                          <p><i className="fas fa-clock"></i> {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-                          <p><i className="fas fa-map-marker-alt"></i> {event.location}</p>
-                        </div>
-                        <p className="event-description">{event.description}</p>
-                        <div className="event-actions">
-                          <a href="#rsvp-form" className="btn btn-small">RSVP Now</a>
-                          <a href="#" className="btn btn-small btn-outline">Add to Calendar</a>
+                        <div className="event-details">
+                          <h3>{event.title}</h3>
+                          <div className="event-meta">
+                            <p><i className="fas fa-clock"></i> {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+                            <p><i className="fas fa-map-marker-alt"></i> {event.location}</p>
+                          </div>
+                          <p className="event-description">{event.description}</p>
+                          <div className="event-actions">
+                            <a href="#rsvp-form" className="btn btn-small">RSVP Now</a>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p>No upcoming events scheduled at the moment. Check back soon!</p>
+                  ))
+                ) : (
+                  <p>No upcoming events scheduled. Add events through the admin panel.</p>
+                )
               )}
             </div>
           </div>
@@ -168,65 +218,44 @@ const Events: React.FC = () => {
             <h2 className="section-title">Past Events</h2>
 
             <div className="events-grid">
-              {pastEvents.length > 0 ? (
-                pastEvents.map((event, index) => (
-                  <div key={index} className="event-card past">
-                    <div className="event-content">
-                      <div className="event-date">
-                        <div className="date-box past-date">
-                          <span className="month">{new Date(event.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</span>
-                          <span className="day">{new Date(event.date).getDate()}</span>
-                          <span className="year">{new Date(event.date).getFullYear()}</span>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '50px' }}>Loading events...</div>
+              ) : (
+                displayPast.length > 0 ? (
+                  displayPast.map((event, index) => (
+                    <div key={pastEvents.length > 0 ? event.id : index} className="event-card past">
+                      <div className="event-content">
+                        <div className="event-date">
+                          <div className="date-box past-date">
+                            <span className="month">{new Date(event.date).toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</span>
+                            <span className="day">{new Date(event.date).getDate()}</span>
+                            <span className="year">{new Date(event.date).getFullYear()}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="event-details">
-                        <h3>{event.title}</h3>
-                        <div className="event-meta">
-                          <p><i className="fas fa-clock"></i> {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-                          <p><i className="fas fa-map-marker-alt"></i> {event.location}</p>
-                        </div>
-                        <p className="event-description">{event.description}</p>
-                        <div className="event-actions">
-                          <a href="#event-gallery" className="btn btn-small">View Photos</a>
+                        <div className="event-details">
+                          <h3>{event.title}</h3>
+                          <div className="event-meta">
+                            <p><i className="fas fa-clock"></i> {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+                            <p><i className="fas fa-map-marker-alt"></i> {event.location}</p>
+                          </div>
+                          <p className="event-description">{event.description}</p>
+                          <div className="event-actions">
+                            <span className="btn btn-small disabled">Event Completed</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p>No past events available. Check back after some events!</p>
+                  ))
+                ) : (
+                  <p>No past events available. Add events through the admin panel.</p>
+                )
               )}
             </div>
           </div>
         </section>
       )}
 
-      {/* Event Gallery */}
-      <section id="event-gallery" className="event-gallery">
-        <div className="container">
-          <h2 className="section-title">Event Gallery</h2>
-          <p className="section-description">Highlights from our past events and activities</p>
 
-          <div className="gallery-grid">
-            {[
-              { title: "Cultural Night 2023", image: "/assets/images/event1.jpg", description: "Celebrating South Sudanese culture" },
-              { title: "Academic Workshop", image: "/assets/images/event4.jpg", description: "Skills development session" },
-              { title: "Community Outreach", image: "/assets/images/event5.jpg", description: "Giving back to the community" },
-              { title: "Leadership Summit", image: "/assets/images/event6.jpg", description: "Developing future leaders" },
-              { title: "Alumni Reunion", image: "/assets/images/event7.jpg", description: "Connecting with graduates" },
-              { title: "Sports Tournament", image: "/assets/images/event8.jpg", description: "Friendly competition" }
-            ].map((item, index) => (
-              <div key={index} className="gallery-item">
-                <img src={item.image} alt={item.title} />
-                <div className="gallery-overlay">
-                  <h4>{item.title}</h4>
-                  <p>{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* RSVP Form */}
       <section id="rsvp-form" className="rsvp-section">
@@ -235,6 +264,20 @@ const Events: React.FC = () => {
           <p className="section-description">Please fill out the form below to register for an upcoming event</p>
 
           <form className="rsvp-form" onSubmit={handleSubmit}>
+            {message && (
+              <div style={{ 
+                color: message.includes('Error') ? 'red' : 'green', 
+                fontWeight: 'bold', 
+                textAlign: 'center', 
+                marginBottom: '20px',
+                padding: '15px',
+                background: message.includes('Error') ? '#f8d7da' : '#d4edda',
+                border: `1px solid ${message.includes('Error') ? '#f5c6cb' : '#c3e6cb'}`,
+                borderRadius: '5px'
+              }}>
+                {message}
+              </div>
+            )}
             <div className="form-group">
               <label htmlFor="event-select">Select Event</label>
               <select 
@@ -245,8 +288,8 @@ const Events: React.FC = () => {
                 required
               >
                 <option value="" disabled>Choose an event</option>
-                {upcomingEvents.map((event, index) => (
-                  <option key={index} value={event.id}>
+                {displayUpcoming.map((event, index) => (
+                  <option key={upcomingEvents.length > 0 ? event.id : index} value={event.id}>
                     {event.title} ({new Date(event.date).toLocaleDateString()})
                   </option>
                 ))}
